@@ -1,0 +1,113 @@
+@font-face {
+    font-family: 'VT323';
+    src: url('fonts/VT323-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+body {
+    background: radial-gradient(ellipse at center, #222 0%, #111 100%);
+    color: #00ff00;
+    font-family: 'VT323', 'Courier New', Courier, monospace;
+    padding: 40px;
+    text-shadow: 0 0 8px #00ff00, 0 0 2px #00ff00;
+    letter-spacing: 1px;
+}
+
+h1 {
+    font-size: 2.5em;
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 0 0 12px #00ff00, 0 0 2px #00ff00;
+    letter-spacing: 2px;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    font-size: 1.3em;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    text-shadow: 0 0 8px #00ff00;
+    box-shadow: 0 0 16px #00ff00 inset;
+    border-radius: 6px;
+}
+.btn:hover {
+    background: #003300;
+    box-shadow: 0 0 24px #00ff00;
+}
+
+textarea, input[type="text"] {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    font-family: inherit;
+    font-size: 1.1em;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    text-shadow: 0 0 8px #00ff00;
+    box-shadow: 0 0 8px #00ff00 inset;
+}
+
+label {
+    font-size: 1.1em;
+    text-shadow: 0 0 8px #00ff00;
+}
+
+.entries {
+    margin-top: 30px;
+    border-top: 2px solid #00ff00;
+    padding-top: 20px;
+    box-shadow: 0 0 16px #00ff00 inset;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+}
+
+.entry {
+    margin-bottom: 20px;
+    border-bottom: 1px dashed #00ff00;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    text-shadow: 0 0 8px #00ff00;
+}
+
+.timestamp {
+    color: #00ff99;
+    font-size: 0.95em;
+    opacity: 0.7;
+    text-shadow: 0 0 8px #00ff99;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    background: #111;
+}
+::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 4px;
+}
+
+/* Optional: Add a scanline effect */
+body::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,255,0,0.07) 0px,
+        rgba(0,255,0,0.07) 2px,
+        transparent 2px,
+        transparent 6px
+    );
+    z-index: 9999;
+    mix-blend-mode: screen;
+}
