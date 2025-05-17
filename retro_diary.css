@@ -98,6 +98,13 @@ label {
     padding-left: 10px;
     text-shadow: 0 0 8px #00ff00;
 }
+.entry-name {
+    font-weight: bold;
+    color: #00ff00;
+    margin-bottom: 4px;
+    font-size: 1.1em;
+    text-shadow: 0 0 8px #00ff00;
+}
 
 .timestamp {
     color: #00ff99;

@@ -94,6 +94,8 @@ addBtn.onclick = function() {
     if (actionBtns) actionBtns.innerHTML = '';
     formArea.innerHTML = `
         <form id="entryForm">
+            <label for="entryName">Entry Name (optional):</label><br>
+            <input id="entryName" type="text" autocomplete="off" maxlength="50"><br>
             <label for="entryText">What do you want to write in your diary?</label><br>
             <textarea id="entryText" rows="6" required spellcheck="true"></textarea><br>
             <button class="btn" type="submit">SAVE ENTRY</button>
@@ -101,11 +103,13 @@ addBtn.onclick = function() {
     `;
     document.getElementById('entryForm').onsubmit = function(e) {
         e.preventDefault();
+        const name = document.getElementById('entryName').value.trim();
         const text = document.getElementById('entryText').value.trim();
         if (text) {
             const now = new Date();
             saveEntry({
-                text,
+                name: name,
+                text: text,
                 timestamp: now.toLocaleString()
             });
             formArea.innerHTML = '<span style="color:#0f0;">Entry saved!</span>';
@@ -122,12 +126,18 @@ viewBtn.onclick = function() {
     if (entries.length === 0) {
         entriesArea.innerHTML = '<span style="color:#0f0;">No entries found.</span>';
     } else {
-        // Show only the archive of dates as clickable buttons
-        entriesArea.innerHTML = entries.map((e, idx) => `
-            <button class="btn archive-btn" data-idx="${idx}">
-                ${e.timestamp}
-            </button>
-        `).join('');
+        // Show entry name (if present) and date/time in the archive button
+        entriesArea.innerHTML = entries.map((e, idx) => {
+            let label = e.timestamp;
+            if (e.name && e.name.length > 0) {
+                label = `<span class="entry-name">${e.name}</span> <span class="timestamp">${e.timestamp}</span>`;
+            }
+            return `
+                <button class="btn archive-btn" data-idx="${idx}">
+                    ${label}
+                </button>
+            `;
+        }).join('');
     }
     // Add the "Would you like to go back?" and "Clear All Entries" buttons OUTSIDE the .entries box
     let actionBtns = document.getElementById('actionBtns');
@@ -167,12 +177,39 @@ viewBtn.onclick = function() {
 };
 
 function showEntry(entry, allEntries) {
+    let header = '';
+    if (entry.name && entry.name.length > 0) {
+        // Entry name first, then date/time
+        header = `<div class="entry-name">${entry.name}</div>
+                  <div class="timestamp">${entry.timestamp}</div>`;
+    } else {
+        header = `<div class="timestamp">${entry.timestamp}</div>`;
+    }
     entriesArea.innerHTML = `
-        <div class="entry">
-            <div class="timestamp">${entry.timestamp}</div>
-            <div>${entry.text.replace(/\n/g, '<br>')}</div>
+        <div class="entry" id="animatedEntry">
+            ${header}
+            <div id="entryText"></div>
         </div>
     `;
+    // Animate the entry text like an old PC
+    const text = entry.text.replace(/\n/g, '<br>');
+    const entryTextDiv = document.getElementById('entryText');
+    let i = 0;
+    function typeWriter() {
+        if (i < text.length) {
+            // Handle <br> tags instantly
+            if (text.slice(i, i + 4) === '<br>') {
+                entryTextDiv.innerHTML += '<br>';
+                i += 4;
+            } else {
+                entryTextDiv.innerHTML += text[i];
+                i++;
+            }
+            setTimeout(typeWriter, 18); // Adjust speed here (ms per character)
+        }
+    }
+    typeWriter();
+
     // Place the back button outside the entry box
     let actionBtns = document.getElementById('actionBtns');
     if (!actionBtns) {
