@@ -40,7 +40,7 @@ addBtn.onclick = function() {
     formArea.innerHTML = `
         <form id="entryForm">
             <label for="entryText">What do you want to write in your diary?</label><br>
-            <textarea id="entryText" rows="6" required></textarea><br>
+            <textarea id="entryText" rows="6" required spellcheck="true"></textarea><br>
             <button class="btn" type="submit">SAVE ENTRY</button>
         </form>
     `;
