@@ -3,35 +3,6 @@ const supabaseUrl = 'https://egtunpdulfpoxqfvswnk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVndHVucGR1bGZwb3hxZnZzd25rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjY2MjgsImV4cCI6MjA2NDIwMjYyOH0.4fk-nLLPMXs2hi38C0nVc-cmTBfk9ZZBHDdbCH2G2F8';
 const client  = supabase.createClient(supabaseUrl, supabaseKey);
 
-// Helper functions
-async function saveEntry(entry) {
-    const { error } = await client.from('entries').insert([entry]);
-    if (error) alert('Error saving entry: ' + error.message);
-}
-async function getEntries() {
-    const { data, error } = await client.from('entries').select('*').order('timestamp', { ascending: false });
-    if (error) {
-        alert('Error loading entries: ' + error.message);
-        return [];
-    }
-    return data;
-}
-async function clearEntries() {
-    const { error } = await client.from('entries').delete();
-    if (error) alert('Error clearing entries: ' + error.message);
-    localStorage.removeItem('diaryUserName');
-    updateDiaryTitle();
-}
-function getUserName() {
-    return JSON.parse(localStorage.getItem('diaryUserName') || 'null');
-}
-function setUserName(first, last) {
-    localStorage.setItem('diaryUserName', JSON.stringify({ first, last }));
-}
-function capitalize(str) {
-    return str.toUpperCase();
-}
-
 window.onload = function() {
     // DOM elements
     const formArea = document.getElementById('formArea');
@@ -42,15 +13,45 @@ window.onload = function() {
     const h1 = document.querySelector('h1');
     const title = document.querySelector('title');
 
+    function getUserName() {
+        return JSON.parse(localStorage.getItem('diaryUserName') || 'null');
+    }
+    function setUserName(first, last) {
+        localStorage.setItem('diaryUserName', JSON.stringify({ first, last }));
+    }
+    function capitalize(str) {
+        return str.toUpperCase();
+    }
     function updateDiaryTitle() {
         const user = getUserName();
-        if (user && user.first && user.last) {
+        if (
+            user &&
+            typeof user.first === "string" && user.first.trim() !== "" &&
+            typeof user.last === "string" && user.last.trim() !== ""
+        ) {
             h1.textContent = `${user.first} ${user.last} DIARY`;
             title.textContent = `${user.first} ${user.last} Diary`;
         } else {
             h1.textContent = "RETRO DIARY";
             title.textContent = "Retro Diary App";
         }
+    }
+    async function saveEntry(entry) {
+        const { error } = await client.from('entries').insert([entry]);
+        if (error) alert('Error saving entry: ' + error.message);
+    }
+    async function getEntries() {
+        const { data, error } = await client.from('entries').select('*').order('timestamp', { ascending: false });
+        if (error) {
+            alert('Error loading entries: ' + error.message);
+            return [];
+        }
+        return data;
+    }
+    async function clearEntries() {
+        const { error } = await client.from('entries').delete().not('id', 'is', null);
+        if (error) alert('Error clearing entries: ' + error.message);
+        // Do NOT call updateDiaryTitle here!
     }
 
     function askForName() {
@@ -82,6 +83,7 @@ window.onload = function() {
                 showMainMenu();
             }
         };
+        updateDiaryTitle(); // Ensure title is reset if no name
     }
 
     function showMainMenu() {
@@ -92,46 +94,47 @@ window.onload = function() {
         entriesArea.innerHTML = '';
         let actionBtns = document.getElementById('actionBtns');
         if (actionBtns) actionBtns.innerHTML = '';
+        updateDiaryTitle();
     }
 
     addBtn.onclick = function() {
-    entriesArea.innerHTML = '';
-    addBtn.style.display = 'none'; // Hide ADD ENTRY
-    viewBtn.style.display = '';    // Show VIEW ENTRIES
-    clearBtn.style.display = 'none'; // Hide CLEAR ALL ENTRIES
-    let actionBtns = document.getElementById('actionBtns');
-    if (actionBtns) actionBtns.innerHTML = '';
-    formArea.innerHTML = `
-        <form id="entryForm">
-            <label for="entryName">Entry Name (optional):</label><br>
-            <input id="entryName" type="text" autocomplete="off" maxlength="50"><br>
-            <label for="entryText">What do you want to write in your diary?</label><br>
-            <textarea id="entryText" rows="6" required spellcheck="true"></textarea><br>
-            <button class="btn" type="submit">SAVE ENTRY</button>
-        </form>
-    `;
-    document.getElementById('entryForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const entryName = document.getElementById('entryName').value.trim();
-        const text = document.getElementById('entryText').value.trim();
-        const user = getUserName();
-        let nameField = entryName;
-        if (user && user.first && user.last) {
-            nameField = entryName
-                ? `${user.first} ${user.last} - ${entryName}`
-                : `${user.first} ${user.last}`;
-        }
-        if (text) {
-            const now = new Date();
-            await saveEntry({
-                name: nameField,
-                text: text,
-                timestamp: now.toLocaleString()
-            });
-            formArea.innerHTML = '<span style="color:#0f0;">Entry saved!</span>';
-        }
+        entriesArea.innerHTML = '';
+        addBtn.style.display = 'none'; // Hide ADD ENTRY
+        viewBtn.style.display = '';    // Show VIEW ENTRIES
+        clearBtn.style.display = 'none'; // Hide CLEAR ALL ENTRIES
+        let actionBtns = document.getElementById('actionBtns');
+        if (actionBtns) actionBtns.innerHTML = '';
+        formArea.innerHTML = `
+            <form id="entryForm">
+                <label for="entryName">Entry Name (optional):</label><br>
+                <input id="entryName" type="text" autocomplete="off" maxlength="50"><br>
+                <label for="entryText">What do you want to write in your diary?</label><br>
+                <textarea id="entryText" rows="6" required spellcheck="true"></textarea><br>
+                <button class="btn" type="submit">SAVE ENTRY</button>
+            </form>
+        `;
+        document.getElementById('entryForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const entryName = document.getElementById('entryName').value.trim();
+            const text = document.getElementById('entryText').value.trim();
+            const user = getUserName();
+            let nameField = entryName;
+            if (user && user.first && user.last) {
+                nameField = entryName
+                    ? `${user.first} ${user.last} - ${entryName}`
+                    : `${user.first} ${user.last}`;
+            }
+            if (text) {
+                const now = new Date();
+                await saveEntry({
+                    name: nameField,
+                    text: text,
+                    timestamp: now.toLocaleString()
+                });
+                formArea.innerHTML = '<span style="color:#0f0;">Entry saved!</span>';
+            }
+        };
     };
-};
 
     viewBtn.onclick = async function() {
         addBtn.style.display = 'none';
@@ -180,12 +183,11 @@ window.onload = function() {
         document.getElementById('clearBtn2').onclick = async function() {
             if (confirm('Are you sure you want to delete all diary entries?')) {
                 await clearEntries();
+                localStorage.removeItem('diaryUserName'); // Remove name only after clearing
+                updateDiaryTitle(); // Now update the title after name is removed
                 entriesArea.innerHTML = '<span style="color:#0f0;">All entries cleared.</span>';
-                actionBtns.innerHTML = `<button class="btn" id="backBtn2">WOULD YOU LIKE TO GO BACK?</button>`;
-                document.getElementById('backBtn2').onclick = function() {
-                    actionBtns.innerHTML = '';
-                    askForName();
-                };
+                actionBtns.innerHTML = '';
+                askForName(); // Always go to enter name page after clearing
             }
         };
     };
@@ -237,17 +239,23 @@ window.onload = function() {
     clearBtn.onclick = async function() {
         if (confirm('Are you sure you want to delete all diary entries?')) {
             await clearEntries();
+            localStorage.removeItem('diaryUserName'); // Remove name only after clearing
+            updateDiaryTitle(); // Now update the title after name is removed
             entriesArea.innerHTML = '<span style="color:#0f0;">All entries cleared.</span>';
             let actionBtns = document.getElementById('actionBtns');
             if (actionBtns) actionBtns.innerHTML = '';
-            askForName();
+            askForName(); // Always go to enter name page after clearing
         }
     };
 
     // On load: ask for name if not set, else show main menu and update title
     const user = getUserName();
     updateDiaryTitle();
-    if (!user || !user.first || !user.last) {
+    if (
+        !user ||
+        typeof user.first !== "string" || user.first.trim() === "" ||
+        typeof user.last !== "string" || user.last.trim() === ""
+    ) {
         askForName();
     } else {
         showMainMenu();
