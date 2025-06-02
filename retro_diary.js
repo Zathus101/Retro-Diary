@@ -51,7 +51,6 @@ window.onload = function() {
     async function clearEntries() {
         const { error } = await client.from('entries').delete().not('id', 'is', null);
         if (error) alert('Error clearing entries: ' + error.message);
-        // Do NOT call updateDiaryTitle here!
     }
 
     function askForName() {
@@ -94,6 +93,24 @@ window.onload = function() {
         entriesArea.innerHTML = '';
         let actionBtns = document.getElementById('actionBtns');
         if (actionBtns) actionBtns.innerHTML = '';
+        // Add RESET DIARY button if not present
+        if (!document.getElementById('resetBtn')) {
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'btn';
+            resetBtn.id = 'resetBtn';
+            resetBtn.textContent = 'RESET DIARY';
+            resetBtn.onclick = async function() {
+                if (confirm('Are you sure you want to reset the diary? This will delete all entries and your name.')) {
+                    await clearEntries();
+                    localStorage.removeItem('diaryUserName');
+                    updateDiaryTitle();
+                    entriesArea.innerHTML = '<span style="color:#0f0;">Diary reset.</span>';
+                    if (actionBtns) actionBtns.innerHTML = '';
+                    askForName();
+                }
+            };
+            (actionBtns || entriesArea.parentNode).appendChild(resetBtn);
+        }
         updateDiaryTitle();
     }
 
@@ -117,13 +134,7 @@ window.onload = function() {
             e.preventDefault();
             const entryName = document.getElementById('entryName').value.trim();
             const text = document.getElementById('entryText').value.trim();
-            const user = getUserName();
-            let nameField = entryName;
-            if (user && user.first && user.last) {
-                nameField = entryName
-                    ? `${user.first} ${user.last} - ${entryName}`
-                    : `${user.first} ${user.last}`;
-            }
+            let nameField = entryName; // Only use what the user typed
             if (text) {
                 const now = new Date();
                 await saveEntry({
@@ -166,6 +177,7 @@ window.onload = function() {
         actionBtns.innerHTML = `
             <button class="btn" id="backBtn">WOULD YOU LIKE TO GO BACK?</button>
             <button class="btn" id="clearBtn2">CLEAR ALL ENTRIES</button>
+            <button class="btn" id="resetBtn2">RESET DIARY</button>
         `;
 
         document.querySelectorAll('.archive-btn').forEach(btn => {
@@ -183,11 +195,19 @@ window.onload = function() {
         document.getElementById('clearBtn2').onclick = async function() {
             if (confirm('Are you sure you want to delete all diary entries?')) {
                 await clearEntries();
-                localStorage.removeItem('diaryUserName'); // Remove name only after clearing
-                updateDiaryTitle(); // Now update the title after name is removed
+                updateDiaryTitle();
                 entriesArea.innerHTML = '<span style="color:#0f0;">All entries cleared.</span>';
                 actionBtns.innerHTML = '';
-                askForName(); // Always go to enter name page after clearing
+            }
+        };
+        document.getElementById('resetBtn2').onclick = async function() {
+            if (confirm('Are you sure you want to reset the diary? This will delete all entries and your name.')) {
+                await clearEntries();
+                localStorage.removeItem('diaryUserName');
+                updateDiaryTitle();
+                entriesArea.innerHTML = '<span style="color:#0f0;">Diary reset.</span>';
+                actionBtns.innerHTML = '';
+                askForName();
             }
         };
     };
@@ -239,12 +259,10 @@ window.onload = function() {
     clearBtn.onclick = async function() {
         if (confirm('Are you sure you want to delete all diary entries?')) {
             await clearEntries();
-            localStorage.removeItem('diaryUserName'); // Remove name only after clearing
-            updateDiaryTitle(); // Now update the title after name is removed
+            updateDiaryTitle();
             entriesArea.innerHTML = '<span style="color:#0f0;">All entries cleared.</span>';
             let actionBtns = document.getElementById('actionBtns');
             if (actionBtns) actionBtns.innerHTML = '';
-            askForName(); // Always go to enter name page after clearing
         }
     };
 
