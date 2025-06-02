@@ -82,7 +82,7 @@ window.onload = function() {
                 showMainMenu();
             }
         };
-        updateDiaryTitle(); // Ensure title is reset if no name
+        updateDiaryTitle();
     }
 
     function showMainMenu() {
@@ -116,9 +116,9 @@ window.onload = function() {
 
     addBtn.onclick = function() {
         entriesArea.innerHTML = '';
-        addBtn.style.display = 'none'; // Hide ADD ENTRY
-        viewBtn.style.display = '';    // Show VIEW ENTRIES
-        clearBtn.style.display = 'none'; // Hide CLEAR ALL ENTRIES
+        addBtn.style.display = 'none';
+        viewBtn.style.display = '';
+        clearBtn.style.display = 'none';
         let actionBtns = document.getElementById('actionBtns');
         if (actionBtns) actionBtns.innerHTML = '';
         formArea.innerHTML = `
@@ -134,7 +134,7 @@ window.onload = function() {
             e.preventDefault();
             const entryName = document.getElementById('entryName').value.trim();
             const text = document.getElementById('entryText').value.trim();
-            let nameField = entryName; // Only use what the user typed
+            let nameField = entryName;
             if (text) {
                 const now = new Date();
                 await saveEntry({
