@@ -1,10 +1,10 @@
-// Supabase setup
 const supabaseUrl = 'https://egtunpdulfpoxqfvswnk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVndHVucGR1bGZwb3hxZnZzd25rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MjY2MjgsImV4cCI6MjA2NDIwMjYyOH0.4fk-nLLPMXs2hi38C0nVc-cmTBfk9ZZBHDdbCH2G2F8';
 const client  = supabase.createClient(supabaseUrl, supabaseKey);
 
-window.onload = function() {
+window.onload = async function() {
     // DOM elements
+    const authArea = document.getElementById('authArea');
     const formArea = document.getElementById('formArea');
     const entriesArea = document.getElementById('entriesArea');
     const addBtn = document.getElementById('addBtn');
@@ -13,6 +13,88 @@ window.onload = function() {
     const h1 = document.querySelector('h1');
     const title = document.querySelector('title');
 
+    // --- AUTH SECTION ---
+    async function checkAuth() {
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) {
+            // Show login/signup forms, hide diary UI
+            formArea.style.display = 'none';
+            entriesArea.style.display = 'none';
+            addBtn.style.display = 'none';
+            viewBtn.style.display = 'none';
+            clearBtn.style.display = 'none';
+            return false;
+        } else {
+            // Hide auth forms, show diary UI
+            authArea.innerHTML = `<button id="logoutBtn" class="btn">Logout</button>`;
+            document.getElementById('logoutBtn').onclick = async function() {
+                await client.auth.signOut();
+                location.reload();
+            };
+            formArea.style.display = '';
+            entriesArea.style.display = '';
+            addBtn.style.display = '';
+            viewBtn.style.display = '';
+            clearBtn.style.display = '';
+            return true;
+        }
+    }
+
+    // Login form handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            let { error } = await client.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Login error: ' + error.message);
+            } else {
+                location.reload();
+            }
+        };
+    }
+
+    // Signup form handler
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            let { error } = await client.auth.signUp({ email, password });
+            if (error) {
+                alert('Sign up error: ' + error.message);
+            } else {
+                alert('Account created! Please check your email for confirmation.');
+                signupForm.style.display = 'none';
+                loginForm.style.display = '';
+            }
+        };
+    }
+
+    // Toggle between login and signup forms
+    const showSignupBtn = document.getElementById('showSignupBtn');
+    const showLoginBtn = document.getElementById('showLoginBtn');
+    if (showSignupBtn && signupForm && loginForm) {
+        showSignupBtn.onclick = function() {
+            loginForm.style.display = 'none';
+            signupForm.style.display = '';
+        };
+    }
+    if (showLoginBtn && signupForm && loginForm) {
+        showLoginBtn.onclick = function() {
+            signupForm.style.display = 'none';
+            loginForm.style.display = '';
+        };
+    }
+
+    // Wait for auth before showing diary
+    const authed = await checkAuth();
+    if (!authed) return;
+
+    // --- DIARY APP SECTION ---
     function getUserName() {
         return JSON.parse(localStorage.getItem('diaryUserName') || 'null');
     }

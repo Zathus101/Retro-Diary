@@ -8,11 +8,44 @@
 </head>
 <body>
     <h1>RETRO DIARY</h1>
+    <div id="authArea">
+        <form id="loginForm" class="retro-form">
+            <input type="email" id="loginEmail" placeholder="Email" required class="retro-input"><br>
+            <input type="password" id="loginPassword" placeholder="Password" required class="retro-input"><br>
+            <button type="submit" class="btn">Login</button>
+            <br>
+            <button type="button" id="showSignupBtn" class="btn">Sign Up</button>
+        </form>
+        <form id="signupForm" class="retro-form" style="display:none;">
+            <input type="email" id="signupEmail" placeholder="Email" required class="retro-input"><br>
+            <input type="password" id="signupPassword" placeholder="Password" required class="retro-input"><br>
+            <button type="submit" class="btn">Sign Up</button>
+            <br>
+            <button type="button" id="showLoginBtn" class="btn">Back to Login</button>
+        </form>
+    </div>
     <div id="formArea"></div>
     <div id="entriesArea"></div>
     <button class="btn" id="addBtn">ADD ENTRY</button>
     <button class="btn" id="viewBtn">VIEW ENTRIES</button>
     <button class="btn" id="clearBtn">CLEAR ALL ENTRIES</button>
     <script src="retro_diary.js"></script>
+    <script>
+        // Simple toggle logic for login/signup forms
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const showSignupBtn = document.getElementById('showSignupBtn');
+            const showLoginBtn = document.getElementById('showLoginBtn');
+            showSignupBtn.onclick = function() {
+                loginForm.style.display = 'none';
+                signupForm.style.display = '';
+            };
+            showLoginBtn.onclick = function() {
+                signupForm.style.display = 'none';
+                loginForm.style.display = '';
+            };
+        });
+    </script>
 </body>
 </html>
