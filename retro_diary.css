@@ -11,11 +11,12 @@ body {
     padding: 40px;
     text-shadow: 0 0 8px #00ff00, 0 0 2px #00ff00;
     letter-spacing: 1px;
-    font-size: 2.2em; /* Increased for old PC look */
+    font-size: 2.2em;
+    margin: 0;
 }
 
 h1 {
-    font-size: 3em; /* Larger heading */
+    font-size: 3em;
     text-align: center;
     margin-bottom: 40px;
     text-shadow: 0 0 12px #00ff00, 0 0 2px #00ff00;
@@ -32,7 +33,6 @@ h1 {
     background: none;
     border: none;
     color: #00ff00;
-    font-size: 1.3em;
     text-align: left;
     cursor: pointer;
     font-family: inherit;
@@ -61,6 +61,33 @@ h1 {
     content: "▶ ";
     color: #b6ffb6;
 }
+#logoutBtn {
+    position: fixed;
+    top: 24px;
+    right: 36px;
+    z-index: 11000;
+    width: auto;
+    min-width: 120px;
+    max-width: 220px;
+    text-align: center;
+    background: none;
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    font-family: 'VT323', 'Courier New', Courier, monospace;
+    font-size: 1.2em;
+    padding: 8px 18px;
+    border-radius: 6px;
+    box-shadow: 0 0 8px #00ff00;
+    text-shadow: 0 0 8px #00ff00;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+#logoutBtn:hover, #logoutBtn:focus {
+    background: #00ff00;
+    color: #000;
+    outline: none;
+    border-color: #00ff00;
+}
 
 textarea, input[type="text"] {
     width: 100%;
@@ -83,7 +110,6 @@ label {
 
 .entries {
     margin-top: 30px;
-    /* Remove border, background, box-shadow, and border-radius for no box effect */
     border-top: none;
     padding-top: 0;
     box-shadow: none;
@@ -127,22 +153,28 @@ label {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 40px;
-    width: 100%;
-    background: none;
+    bottom: 0;
+    width: 100vw;
+    background: rgba(0,0,0,0.97);
+    border-top: 2px solid #00ff00;
     z-index: 10000;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;   /* Align buttons to the left */
-    gap: 10px;
-    pointer-events: none; /* Prevent accidental overlay clicks except on buttons */
-    padding-left: 40px;    /* Optional: match body padding for alignment */
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    pointer-events: auto;
+    padding: 16px 0 18px 0;
+    box-shadow: 0 -2px 16px #00ff00a0;
 }
 #actionBtns .btn {
     width: auto;
-    min-width: 320px;
+    min-width: 220px;
     max-width: 90vw;
-    pointer-events: auto; /* Allow clicking the buttons */
+    margin: 0 12px;
+    pointer-events: auto;
+    text-align: center;
+    display: inline-block;
 }
 
 /* Optional: Add a scanline effect */
@@ -185,7 +217,18 @@ body::before {
     color: #0f0;
     opacity: 0.7;
 }
-/* Add to retro_diary.css */
 .retro-form .btn + .btn {
     margin-top: 10px;
+}
+
+@media (max-width: 1000px) {
+    #actionBtns {
+        font-size: 1em;
+        padding: 8px 0 10px 0;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .btn {
+        font-size: 1.1em;
+    }
 }

@@ -17,7 +17,6 @@ window.onload = async function() {
     async function checkAuth() {
         const { data: { user } } = await client.auth.getUser();
         if (!user) {
-            // Show login/signup forms, hide diary UI
             formArea.style.display = 'none';
             entriesArea.style.display = 'none';
             addBtn.style.display = 'none';
@@ -25,7 +24,6 @@ window.onload = async function() {
             clearBtn.style.display = 'none';
             return false;
         } else {
-            // Hide auth forms, show diary UI
             authArea.innerHTML = `<button id="logoutBtn" class="btn">Logout</button>`;
             document.getElementById('logoutBtn').onclick = async function() {
                 await client.auth.signOut();
@@ -118,12 +116,23 @@ window.onload = async function() {
             title.textContent = "Retro Diary App";
         }
     }
+
+    // --- Supabase-aware save/get ---
     async function saveEntry(entry) {
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) return;
+        entry.id = user.id; // Changed from user_id to id
         const { error } = await client.from('entries').insert([entry]);
         if (error) alert('Error saving entry: ' + error.message);
     }
     async function getEntries() {
-        const { data, error } = await client.from('entries').select('*').order('timestamp', { ascending: false });
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) return [];
+        const { data, error } = await client
+            .from('entries')
+            .select('*')
+            .eq('id', user.id) // Changed from user_id to id
+            .order('timestamp', { ascending: false });
         if (error) {
             alert('Error loading entries: ' + error.message);
             return [];
@@ -131,7 +140,9 @@ window.onload = async function() {
         return data;
     }
     async function clearEntries() {
-        const { error } = await client.from('entries').delete().not('id', 'is', null);
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) return;
+        const { error } = await client.from('entries').delete().eq('id', user.id); // Changed from user_id to id
         if (error) alert('Error clearing entries: ' + error.message);
     }
 
@@ -229,6 +240,7 @@ window.onload = async function() {
         };
     };
 
+    // --- VIEW ENTRIES WITH EDIT & DELETE ---
     viewBtn.onclick = async function() {
         addBtn.style.display = 'none';
         viewBtn.style.display = 'none';
@@ -244,9 +256,13 @@ window.onload = async function() {
                     label = `<span class="entry-name">${e.name}</span> <span class="timestamp">${e.timestamp}</span>`;
                 }
                 return `
-                    <button class="btn archive-btn" data-id="${e.id}">
-                        ${label}
-                    </button>
+                    <div class="entry-block">
+                        <button class="btn archive-btn" data-id="${e.id}">
+                            ${label}
+                        </button>
+                        <button class="btn edit-btn" data-id="${e.id}">Edit</button>
+                        <button class="btn delete-btn" data-id="${e.id}">Delete</button>
+                    </div>
                 `;
             }).join('');
         }
@@ -262,11 +278,32 @@ window.onload = async function() {
             <button class="btn" id="resetBtn2">RESET DIARY</button>
         `;
 
+        // View entry
         document.querySelectorAll('.archive-btn').forEach(btn => {
             btn.onclick = function() {
                 const id = this.getAttribute('data-id');
                 const entry = entries.find(e => String(e.id) === String(id));
                 if (entry) showEntry(entry, entries);
+            };
+        });
+
+        // Delete entry
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = async function() {
+                const id = this.getAttribute('data-id');
+                if (confirm('Delete this entry?')) {
+                    await client.from('entries').delete().eq('id', id);
+                    viewBtn.onclick();
+                }
+            };
+        });
+
+        // Edit entry
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = function() {
+                const id = this.getAttribute('data-id');
+                const entry = entries.find(e => String(e.id) === String(id));
+                if (entry) showEditForm(entry);
             };
         });
 
@@ -294,6 +331,28 @@ window.onload = async function() {
         };
     };
 
+    // --- EDIT FORM ---
+    function showEditForm(entry) {
+        formArea.innerHTML = `
+            <form id="editEntryForm">
+                <label for="editEntryName">Entry Name (optional):</label><br>
+                <input id="editEntryName" type="text" value="${entry.name || ''}" maxlength="50"><br>
+                <label for="editEntryText">Edit your diary entry:</label><br>
+                <textarea id="editEntryText" rows="6" required>${entry.text || ''}</textarea><br>
+                <button class="btn" type="submit">SAVE CHANGES</button>
+            </form>
+        `;
+        document.getElementById('editEntryForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('editEntryName').value.trim();
+            const text = document.getElementById('editEntryText').value.trim();
+            await client.from('entries').update({ name, text }).eq('id', entry.id);
+            formArea.innerHTML = '';
+            viewBtn.onclick();
+        };
+    }
+
+    // --- SHOW SINGLE ENTRY ---
     function showEntry(entry, allEntries) {
         let header = '';
         if (entry.name && entry.name.length > 0) {
